@@ -1,0 +1,99 @@
+<html>
+    <head>
+        <style>
+            canvas{
+                background-color:#eee;
+            }
+            .contain{
+                width: 1500px;
+                height: 800px;
+                padding: 0;
+                margin: 20px auto;
+                width: fit-content;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="contain">
+            <canvas width="1500" height="600"></canvas>
+        </div>
+    </body>
+    <script>
+        class Bullet {
+            constructor(ox, oy, angle){
+                const canvas = document.querySelector('canvas')
+                this.ctx = canvas.getContext('2d')
+                this.width = canvas.width
+                this.height = canvas.height
+                this.x = ox
+                this.y = oy
+                this.len = 6
+                this.speed = 5
+                this.angle = angle
+            }
+            draw(){
+                if(this.x > this.width || this.x < 0 || this.y < 0 || this.y > this.height) return true
+                const len = this.len
+                let cx = len * Math.cos(this.angle) + this.x
+                let cy = len * Math.sin(this.angle) + this.y
+                const ctx = this.ctx
+                ctx.beginPath()
+                ctx.strokeStyle = '#D04051'
+                ctx.lineWidth = 3
+                ctx.moveTo(this.x, this.y)
+                ctx.lineTo(cx, cy)
+                ctx.stroke()
+                ctx.closePath()
+                this.x = this.speed * Math.cos(this.angle) + this.x
+                this.y = this.speed * Math.sin(this.angle) + this.y
+                return false
+            }
+        }
+        
+        const canvas = document.querySelector('canvas')
+        const ctx = canvas.getContext('2d')
+        let angle = 0
+        canvas.onmousemove = e => {
+            let cx = e.clientX - canvas.offsetLeft - canvas.width / 2
+            let cy = e.clientY - canvas.offsetTop - canvas.height / 2
+            angle = Math.atan2(cy, cx)
+        }
+        function plane(a){
+            ctx.beginPath()
+            ctx.strokeStyle = '#555'
+            ctx.lineWidth = 3
+            ctx.moveTo(canvas.width / 2, canvas.height / 2)
+            let len = 50
+            let x = len * Math.cos(a) + canvas.width / 2
+            let y = len * Math.sin(a) + canvas.height / 2
+            ctx.lineTo(x, y)
+            ctx.stroke()
+            ctx.closePath()
+            return { x, y }
+        }
+        let arr = []
+        let pos = {x: 0, y: 0}
+        function run(){
+            requestAnimationFrame(() => {
+                run()
+            })
+            ctx.clearRect(0, 0, canvas.width, canvas.height)
+            let p = plane(angle)
+            pos.x = p.x
+            pos.y = p.y
+            arr = arr.filter(k => !k.remove)
+            arr.forEach(b => {
+                let re = b.draw()
+                if(re) b.remove = true
+            })
+        }
+        function shoot(){
+            arr.push(new Bullet(pos.x, pos.y, angle))
+        }
+        document.onkeydown = e => {
+            console.log(arr)
+            if(e.keyCode == 32) shoot()
+        }
+        run()
+    </script>
+</html>
